@@ -491,16 +491,17 @@ int mfnested(uint8_t blockNo, uint8_t keyType, uint16_t timeout14a, uint8_t *key
 
 	memset(resultKey, 0, 6);
 	start_time = msclock();
-	next_print_time = start_time + 1 * 1000;
+	next_print_time = start_time + 5 * 1000;
+	last_count = 0;
 	bool want_queue = (max_keys < statelists[0].len);
 	bool queued_next_set = false;
 	// The list may still contain several key candidates. Test each of them with mfCheckKeys
 	for (i = 0; i < statelists[0].len; i += max_keys) {
 		if (next_print_time <= msclock()) {
-			brute_force_per_second = ((float)i) / (((float)(msclock() - start_time)) / 1000.0);
-			brute_force_time = ((float)(statelists[0].len - i)) / brute_force_per_second;
+			brute_force_per_second = ((float)last_count) / (((float)(msclock() - start_time)) / 1000.0);
+			brute_force_time = ((float)(statelists[0].len - last_count)) / brute_force_per_second;
 			next_print_time = msclock() + 10 * 1000;
-			PrintAndLog(" %8d keys left | %5.1f keys/sec | worst case %6.1f seconds remaining", statelists[0].len - i, brute_force_per_second, brute_force_time);
+			PrintAndLog(" %8d keys left | %5.1f keys/sec | worst case %6.1f seconds remaining", statelists[0].len - last_count, brute_force_per_second, brute_force_time);
 		}
 
 		if ((i+max_keys) >= statelists[0].len)
@@ -534,6 +535,8 @@ int mfnested(uint8_t blockNo, uint8_t keyType, uint16_t timeout14a, uint8_t *key
 			num_to_bytes(key64, 6, resultKey);
 			break;
 		}
+
+		last_count = i;
 	}
 
 	if (queued_next_set) {
