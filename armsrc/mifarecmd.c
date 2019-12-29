@@ -1038,6 +1038,9 @@ void MifareChkKeys(uint16_t arg0, uint32_t arg1, uint8_t arg2, uint8_t *datain) 
 			cmd_send(CMD_ACK, 1, res, 0, keyIndex, 80);
 		else
 			cmd_send(CMD_ACK, 0, res, 0, NULL, 0);
+
+		if (res < 0 && usb_poll_validate_length()) // we want to exit but another set of keys has been queued!
+			reject_next = true;
 	} else {	
 		res = MifareChkBlockKeys(datain, keyCount, blockNo, keyType, &auth_timeout, OLD_MF_DBGLEVEL);
 
